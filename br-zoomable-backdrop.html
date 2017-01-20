@@ -1,0 +1,63 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="br-zoomable-backdrop">
+  <style>
+    :host #backdrop {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.2);
+      opacity: 0;
+      visibility: hidden;
+      z-index: 100;
+      transition: all 0.2s ease-in-out;
+    }
+    :host([active]) #backdrop {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    :host([transparent]) #backdrop {
+      transition: none;
+    }
+    :host([transparent][active]) #backdrop {
+      visibility: visible;
+      opacity: 0;
+    }
+  </style>
+  <template>
+    <div id="backdrop">
+
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'br-zoomable-backdrop',
+      properties: {
+        active: {
+          type: Boolean,
+          value: false,
+          notify: true,
+          reflectToAttribute: true
+        },
+        transparent: {
+          type: Boolean,
+          value: false,
+          notify: true,
+          reflectToAttribute: true
+        }
+      },
+      toggle: function(){
+        this.active = !this.active;
+      },
+      show: function(){
+        this.active = true;
+      },
+      hide: function(){
+        this.active = false;
+      }
+    })
+  </script>
+</dom-module>
