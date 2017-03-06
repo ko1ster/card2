@@ -1,0 +1,26 @@
+{
+  "name": "br-zoomable-card",
+  "description": "A Polymer element that extends paper-card to include ability to &#34;zoom&#34; card",
+  "main": "br-zoomable-card.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.4.0",
+    "paper-card": "PolymerElements/paper-card#^1.1.4"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
+    "web-component-tester": "^4.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
+  },
+  "homepage": "https://github.com/brogers4/br-zoomable-card",
+  "_release": "da29c2232c",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "da29c2232c928df0978497977581685ed41ae827"
+  },
+  "_source": "https://github.com/brogers4/br-zoomable-card.git",
+  "_target": "master",
+  "_originalSource": "brogers4/br-zoomable-card",
+  "_direct": true
+}

@@ -1,0 +1,251 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-card/paper-card.html">
+<link rel="import" href="../paper-ripple/paper-ripple.html">
+
+<link rel="import" href="./br-zoomable-backdrop.html" />
+
+<!--
+`br-zoomable-card`
+A Polymer element that extends paper-card to include ability to &#34;zoom&#34; card
+
+@demo demo/index.html
+-->
+
+<dom-module id="br-zoomable-card">
+  <style>
+    :host {
+      --detail-card-fixed-left: 0;
+      --detail-card-fixed-top: 0;
+      --detail-card-fixed-width: 200px;
+      --detail-card-fixed-height: 200px;
+      --detail-card-chart-height: 200px;
+      --detail-card-margin: 20px;
+      display: flex;
+    }
+
+    :host .detail-card {
+      margin: var(--detail-card-margin);
+      border-radius: 2px;
+      @apply(--shadow-elevation-1dp);
+      overflow: hidden;
+      /*border: 1px solid var(--gray);*/
+      min-width: 240px;
+      /*transition: all 0.3s ease-in-out;*/
+      display: flex;
+      flex-direction: column;
+      flex: 1 0 auto;
+      /*background: rgba(255,255,255,0.5);*/
+    }
+
+    :host([scrollable]) {
+      flex: 1;
+    }
+
+    :host([scrollable]) .detail-card ::content .scrollable-container {
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1;
+      /*display: flex;*/
+      /*flex: 1 0;*/
+    }
+
+    :host .detail-card.enlarge {
+      position: fixed;
+      z-index: 101;
+      left: var(--detail-card-fixed-left);
+      top: var(--detail-card-fixed-top);
+      width: var(--detail-card-fixed-width);
+      height: var(--detail-card-fixed-height);
+      @apply(--shadow-elevation-16dp);
+      transition: all 0.3s ease-in-out;
+    }
+  </style>
+  <template>
+    <iron-media-query query="(max-width: 900px)" query-matches="{{small}}"></iron-media-query>
+    <paper-card id="detailCard" class="detail-card" animated-shadow>
+      <content id="detailContent"></content>
+    </paper-card>
+    <br-zoomable-backdrop id="fullscreenBackdrop" on-tap="closeDetailCardFullscreen"></br-zoomable-backdrop>
+  </template>
+  <script>
+    Polymer({
+      is: 'br-zoomable-card',
+
+      properties: {
+        zoomable: {
+          type: Boolean,
+          value: false
+        },
+        scrollable: {
+          type: Boolean,
+          value: false
+        },
+        small: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true,
+          notify: true
+        },
+        _fullscreenContainer: {
+          type: Object,
+          value: null
+        },
+        _fullscreenTarget: {
+          type: Object,
+          value: null
+        },
+        _fullscreenIcon: {
+          type: Object,
+          value: null
+        },
+        _fullscreenGhost: {
+          type: Object,
+          value: null
+        },
+        _fullscreenMode: {
+          type: Boolean,
+          value: false
+        },
+        _defaultChartHeight: {
+          type: String
+        },
+        log: {
+          type: Boolean,
+          value: false
+        }
+      },
+
+      attached: function(){
+        this.async(function(){
+          if(this.log) console.log("[my-detail-card] attached callback");
+          if(this.zoomable){
+            var zoomButtons = Polymer.dom(this).querySelectorAll('.card-zoom-toggle');
+            for(var i=0; i<zoomButtons.length; i++){
+              this.listen(zoomButtons[i],'tap','toggleDetailCardFullscreen')
+            }
+          }
+          this.reflowCard();
+        })
+      },
+
+      reflowCard: function(){
+        var chartHeight = "200px";
+        var children = Polymer.dom(this).children;
+        for(var i=0; i<children.length; i++){
+          if(children[i].classList.contains('card-chart-container')){
+            // console.log("CARD-CHART-CONTAINER: ",children[i]);
+            chartHeight = window.getComputedStyle(children[i]).getPropertyValue("height");
+            var rect = children[i].getBoundingClientRect();
+          }
+        }
+        if(chartHeight && chartHeight != "auto"){
+          this.set('_defaultChartHeight',chartHeight);
+          this.customStyle['--detail-card-chart-height'] = chartHeight;
+          this.updateStyles();
+        }
+      },
+
+      openDetailCardFullscreen: function(event) {
+        this.set('_fullscreenMode',true);
+        var target = event.target;
+        var icon = target;
+
+        while(!target.classList.contains('detail-card')){
+          target = target.parentElement;
+        }
+        // console.log("_openDetailCardFullscreen detail-card: ",target);
+        var container = target.getBoundingClientRect();
+        // console.log("_openDetailCardFullscreen container: ",container);
+        this.set('_fullscreenContainer',container);
+        this.set('_fullscreenTarget',target);
+        this.set('_fullscreenIcon',icon);
+
+        var chartHeight = "200px";
+        var children = Polymer.dom(this).children;
+        for(var i=0; i<children.length; i++){
+          if(children[i].classList.contains('card-chart-container')){
+            // console.log("CARD-CHART-CONTAINER: ",children[i]);
+            chartHeight = window.getComputedStyle(children[i]).getPropertyValue("height");
+          }
+        }
+
+        this.set('_defaultChartHeight',chartHeight);
+        var diff = container.height - parseInt(chartHeight,10);
+        // console.log("DIFF: ",diff);
+
+        var margin = this.$.detailCard.getComputedStyleValue('margin-top');
+        var marginOffset = parseInt(margin,10);
+
+        this.customStyle['--detail-card-fixed-top'] = container.top-marginOffset+'px';
+        this.customStyle['--detail-card-fixed-left'] = container.left-marginOffset+'px';
+        this.customStyle['--detail-card-fixed-width'] = container.width+'px';
+        this.customStyle['--detail-card-fixed-height'] = container.height+'px';
+        this.updateStyles();
+        this.toggleClass('enlarge',true,target);
+        this._addGhostElement(target,container);
+        this.$.fullscreenBackdrop.show();
+        setTimeout(function(){
+          this.customStyle['--detail-card-fixed-top'] = '10vh';
+          this.customStyle['--detail-card-fixed-left'] = '10vw';
+          this.customStyle['--detail-card-fixed-width'] = '80vw';
+          this.customStyle['--detail-card-fixed-height'] = window.innerHeight*0.8+'px';
+          this.customStyle['--detail-card-chart-height'] = window.innerHeight*0.8-diff+'px';
+          this.updateStyles();
+          setTimeout(function(){
+            icon.icon = "icons:fullscreen-exit";
+          }.bind(this),350);
+        }.bind(this),50);
+      },
+      closeDetailCardFullscreen: function(event) {
+        this.set('_fullscreenMode',false);
+        var container = this._fullscreenContainer;
+        var target = this._fullscreenTarget;
+
+        var margin = this.$.detailCard.getComputedStyleValue('margin-top');
+        var marginOffset = parseInt(margin,10);
+
+        this.customStyle['--detail-card-fixed-top'] = container.top-marginOffset+'px'; // adjust for margin
+        this.customStyle['--detail-card-fixed-left'] = container.left-marginOffset+'px'; // adjust for margin
+        this.customStyle['--detail-card-fixed-width'] = container.width+'px';
+        this.customStyle['--detail-card-fixed-height'] = container.height+'px';
+        this.customStyle['--detail-card-chart-height'] = this.get('_defaultChartHeight');
+        this.updateStyles();
+        this.$.fullscreenBackdrop.hide();
+        setTimeout(function(){
+          this._removeGhostElement();
+          this._fullscreenIcon.icon = "icons:fullscreen";
+          this.toggleClass('enlarge',false,target);
+          this.updateStyles();
+        }.bind(this),350); // Animation delay;
+      },
+      toggleDetailCardFullscreen: function(event) {
+        this._fullscreenMode = !this._fullscreenMode;
+        if(this._fullscreenMode) this.openDetailCardFullscreen(event);
+        else this.closeDetailCardFullscreen(event);
+      },
+
+      // Private Functions
+      _addGhostElement: function(target,container){
+        var parent = target.parentNode;
+        var ghost = document.createElement('div');
+        var margin = this.$.detailCard.getComputedStyleValue('margin-top');
+        ghost.style.margin = margin;
+        ghost.style.width = container.width+'px';
+        ghost.style.height = container.height+'px';
+        ghost.style.background = "rgba(0,0,0,0.2)";
+        ghost.style.boxShadow = "0 1px 4px rgba(0,0,0,0.2)";
+        ghost.style.borderRadius = '2px';
+        var inserted = parent.insertBefore(ghost,target);
+        this.set('_fullscreenGhost',inserted);
+      },
+      _removeGhostElement: function(){
+        if(this._fullscreenGhost){
+          console.log("[br-zoomable-card] _removeGhostElement ghost parent:",this._fullscreenGhost.parentNode);
+          var parent = this._fullscreenGhost.parentNode;
+          if(typeof parent !== "undefined" && parent !== null) parent.removeChild(this._fullscreenGhost);
+          this._fullscreenGhost = null;
+        }
+      },
+    })
+  </script>
+</dom-module>

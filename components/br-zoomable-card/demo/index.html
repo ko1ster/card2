@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>br-zoomable-card demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../br-zoomable-card.html">
+
+    <style is="custom-style" include="demo-pages-shared-styles">
+      .header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        background: #eee;
+        border-bottom: 1px solid #bbb;
+        padding: 10px;
+      }
+      .content {
+        padding: 10px;
+      }
+      .title {
+        flex: 1 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Basic br-zoomable-card demo</h3>
+      <demo-snippet>
+        <template>
+          <br-zoomable-card zoomable>
+            <div class="header">
+              <span class="title">Zoomable Card</span>
+              <paper-icon-button class="card-zoom-toggle" icon="icons:fullscreen"></paper-icon-button>
+            </div>
+            <div class="content">
+              Here is some content.
+            </div>
+          </br-zoomable-card>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>
